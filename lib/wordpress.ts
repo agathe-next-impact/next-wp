@@ -1385,7 +1385,7 @@ const BUILT_IN_CONTENT_TYPES = new Set([
 
 const CONTENT_TYPES_QUERY = `
   query GetContentTypes {
-    contentTypes {
+    contentTypes(first: 100) {
       nodes {
         name
         graphqlSingleName

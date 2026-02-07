@@ -81,14 +81,20 @@ function nextwp_get_options_page_by_slug(WP_REST_Request $request): WP_REST_Resp
     }
 
     $post_id = $target_page['post_id'] ?? 'options';
-    $fields = get_fields($post_id);
+
+    // Get only field groups assigned to THIS specific options page
+    // This prevents returning fields from other pages sharing the same post_id
+    $field_groups = acf_get_field_groups(['options_page' => $slug]);
 
     $filtered = [];
-    if (is_array($fields)) {
-        foreach ($fields as $key => $value) {
+    foreach ($field_groups as $group) {
+        $group_fields = acf_get_fields($group['key']);
+        if (!$group_fields) continue;
+        foreach ($group_fields as $field) {
+            $value = get_field($field['name'], $post_id);
             if ($value === null || $value === false || $value === '') continue;
             if (is_array($value) && empty($value)) continue;
-            $filtered[$key] = $value;
+            $filtered[$field['name']] = $value;
         }
     }
 

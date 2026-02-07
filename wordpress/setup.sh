@@ -28,6 +28,12 @@ if ! wp core is-installed --allow-root 2>/dev/null; then
   wp plugin delete hello --allow-root 2>/dev/null || true
 fi
 
+# Activate WPGraphQL if not already active
+if ! wp plugin is-active wp-graphql --allow-root 2>/dev/null; then
+  echo "Activating WPGraphQL plugin..."
+  wp plugin activate wp-graphql --allow-root
+fi
+
 # Activate the revalidation plugin if not already active
 if ! wp plugin is-active next-revalidate --allow-root 2>/dev/null; then
   echo "Activating Next.js Revalidation plugin..."

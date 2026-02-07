@@ -7,6 +7,13 @@ copy_custom_files() {
         sleep 2
     done
 
+    # Copy WPGraphQL plugin if not already present
+    if [ ! -d /var/www/html/wp-content/plugins/wp-graphql ]; then
+        echo "Installing WPGraphQL plugin..."
+        cp -r /usr/src/wp-graphql /var/www/html/wp-content/plugins/
+        chown -R www-data:www-data /var/www/html/wp-content/plugins/wp-graphql
+    fi
+
     # Copy plugin if not already present
     if [ ! -d /var/www/html/wp-content/plugins/next-revalidate ]; then
         echo "Installing next-revalidate plugin..."

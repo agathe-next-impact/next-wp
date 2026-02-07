@@ -1,9 +1,18 @@
 import { MetadataRoute } from "next";
-import { getAllPostsForSitemap } from "@/lib/wordpress";
+import {
+  getAllPostsForSitemap,
+  getCustomPostTypes,
+  getAllCPTSlugs,
+  getACFOptionsPages,
+} from "@/lib/wordpress";
 import { siteConfig } from "@/site.config";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getAllPostsForSitemap();
+  const [posts, cptTypes, optionsPages] = await Promise.all([
+    getAllPostsForSitemap(),
+    getCustomPostTypes(),
+    getACFOptionsPages(),
+  ]);
 
   const staticUrls: MetadataRoute.Sitemap = [
     {
@@ -51,5 +60,42 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticUrls, ...postUrls];
+  const cptUrls: MetadataRoute.Sitemap = [];
+
+  for (const ct of cptTypes) {
+    cptUrls.push({
+      url: `${siteConfig.site_domain}/${ct.name}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    });
+
+    const slugs = await getAllCPTSlugs(ct);
+    for (const { slug } of slugs) {
+      cptUrls.push({
+        url: `${siteConfig.site_domain}/${ct.name}/${slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.5,
+      });
+    }
+  }
+
+  const optionsUrls: MetadataRoute.Sitemap = optionsPages.map((page) => ({
+    url: `${siteConfig.site_domain}/options/${page.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.3,
+  }));
+
+  if (optionsPages.length > 0) {
+    optionsUrls.unshift({
+      url: `${siteConfig.site_domain}/options`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    });
+  }
+
+  return [...staticUrls, ...postUrls, ...cptUrls, ...optionsUrls];
 }

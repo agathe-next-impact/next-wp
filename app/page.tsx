@@ -4,24 +4,40 @@ import { Section, Container, Prose } from "@/components/craft";
 // Next.js Imports
 import Link from "next/link";
 
+// Data
+import { getCustomPostTypes, getACFOptionsPages } from "@/lib/wordpress";
+
 // Icons
-import { File, Pen, Tag, Diamond, User, Folder } from "lucide-react";
+import { File, Pen, Tag, Diamond, User, Folder, LayoutGrid, Settings } from "lucide-react";
 import { WordPressIcon } from "@/components/icons/wordpress";
 import { NextJsIcon } from "@/components/icons/nextjs";
 
 // This page is using the craft.tsx component and design system
-export default function Home() {
+export default async function Home() {
+  const [cptTypes, optionsPages] = await Promise.all([
+    getCustomPostTypes(),
+    getACFOptionsPages(),
+  ]);
+
   return (
     <Section>
       <Container>
-        <ToDelete />
+        <ToDelete cptTypes={cptTypes} optionsPages={optionsPages} />
       </Container>
     </Section>
   );
 }
 
 // This is just some example TSX
-const ToDelete = () => {
+import type { ContentTypeInfo, ACFOptionsPageInfo } from "@/lib/wordpress.d";
+
+const ToDelete = ({
+  cptTypes,
+  optionsPages,
+}: {
+  cptTypes: ContentTypeInfo[];
+  optionsPages: ACFOptionsPageInfo[];
+}) => {
   return (
     <main className="space-y-6">
       <Prose>
@@ -141,6 +157,56 @@ const ToDelete = () => {
           </span>
         </a>
       </div>
+
+      {cptTypes.length > 0 && (
+        <>
+          <Prose>
+            <h2>Custom Post Types</h2>
+          </Prose>
+          <div className="grid md:grid-cols-3 gap-4">
+            {cptTypes.map((cpt) => (
+              <Link
+                key={cpt.name}
+                className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
+                href={`/${cpt.name}`}
+              >
+                <LayoutGrid size={32} />
+                <span>
+                  {cpt.label}{" "}
+                  <span className="block text-sm text-muted-foreground">
+                    {cpt.description || cpt.name}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+
+      {optionsPages.length > 0 && (
+        <>
+          <Prose>
+            <h2>Options Pages</h2>
+          </Prose>
+          <div className="grid md:grid-cols-3 gap-4">
+            {optionsPages.map((page) => (
+              <Link
+                key={page.slug}
+                className="border h-48 bg-accent/50 rounded-lg p-4 flex flex-col justify-between hover:scale-[1.02] transition-all"
+                href={`/options/${page.slug}`}
+              >
+                <Settings size={32} />
+                <span>
+                  {page.page_title || page.menu_title}{" "}
+                  <span className="block text-sm text-muted-foreground">
+                    {page.description || page.slug}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
     </main>
   );
 };

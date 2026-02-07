@@ -1,6 +1,7 @@
 import { getPageBySlug, getAllPages } from "@/lib/wordpress";
 import { generateContentMetadata, stripHtml } from "@/lib/metadata";
 import { Section, Container, Prose } from "@/components/craft";
+import { DynamicFields } from "@/components/dynamic-fields";
 import { notFound } from "next/navigation";
 
 import type { Metadata } from "next";
@@ -30,10 +31,12 @@ export async function generateMetadata({
 
   const description = page.excerpt?.rendered
     ? stripHtml(page.excerpt.rendered)
-    : stripHtml(page.content.rendered).slice(0, 200) + "...";
+    : page.content?.rendered
+      ? stripHtml(page.content.rendered).slice(0, 200) + "..."
+      : "";
 
   return generateContentMetadata({
-    title: page.title.rendered,
+    title: page.title?.rendered || "",
     description,
     slug: page.slug,
     basePath: "pages",
@@ -56,9 +59,11 @@ export default async function Page({
     <Section>
       <Container>
         <Prose>
-          <h2>{page.title.rendered}</h2>
-          <div dangerouslySetInnerHTML={{ __html: page.content.rendered }} />
+          <h2>{page.title?.rendered || ""}</h2>
+          <div dangerouslySetInnerHTML={{ __html: page.content?.rendered || "" }} />
         </Prose>
+
+        <DynamicFields acf={page.acf} customTaxonomies={page.customTaxonomies} />
       </Container>
     </Section>
   );

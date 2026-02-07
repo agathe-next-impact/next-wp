@@ -55,7 +55,7 @@ export interface FeaturedMedia extends WPEntity {
 export interface Post extends WPEntity {
   title: RenderedTitle;
   content: RenderedContent;
-  excerpt: RenderedContent;
+  excerpt?: RenderedContent;
   author: number;
   featured_media: number;
   comment_status: "open" | "closed";
@@ -77,12 +77,14 @@ export interface Post extends WPEntity {
   tags: number[];
   meta: Record<string, unknown>;
   _embedded?: PostEmbedded;
+  acf?: Record<string, unknown>;
+  customTaxonomies?: CustomTaxonomyData[];
 }
 
 export interface Page extends WPEntity {
   title: RenderedTitle;
   content: RenderedContent;
-  excerpt: RenderedContent;
+  excerpt?: RenderedContent;
   author: number;
   featured_media: number;
   parent: number;
@@ -91,6 +93,62 @@ export interface Page extends WPEntity {
   ping_status: "open" | "closed";
   template: string;
   meta: Record<string, unknown>;
+  acf?: Record<string, unknown>;
+  customTaxonomies?: CustomTaxonomyData[];
+}
+
+// Custom taxonomy data for dynamic rendering
+export interface CustomTaxonomyData {
+  taxonomy: string;
+  label: string;
+  terms: Array<{ id: number; name: string; slug: string }>;
+}
+
+// CPT Discovery types
+export interface ContentTypeInfo {
+  name: string;
+  graphqlSingleName: string;
+  graphqlPluralName: string;
+  label: string;
+  description: string;
+  hasArchive: boolean;
+}
+
+// Generic content node for any CPT item
+export interface ContentNode {
+  id: number;
+  slug: string;
+  date: string;
+  modified: string;
+  link: string;
+  status: "publish" | "future" | "draft" | "pending" | "private";
+  title?: { rendered: string };
+  content?: { rendered: string; protected: boolean };
+  excerpt?: { rendered: string; protected: boolean };
+  author?: number;
+  featured_media?: number;
+  _embedded?: {
+    author?: EmbeddedAuthor[];
+    "wp:featuredmedia"?: FeaturedMedia[];
+  };
+  contentType: string;
+  acf?: Record<string, unknown>;
+  customTaxonomies?: CustomTaxonomyData[];
+}
+
+// ACF Options Page types
+export interface ACFOptionsPageInfo {
+  slug: string;
+  page_title: string;
+  menu_title: string;
+  description: string;
+  icon_url: string;
+  parent_slug: string;
+  post_id: string;
+}
+
+export interface ACFOptionsPageData extends ACFOptionsPageInfo {
+  acf: Record<string, unknown>;
 }
 
 // Taxonomy types

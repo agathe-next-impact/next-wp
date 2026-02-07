@@ -2,13 +2,19 @@ FROM wordpress:latest
 
 # Labels for GitHub Container Registry
 LABEL org.opencontainers.image.source="https://github.com/9d8dev/next-wp"
-LABEL org.opencontainers.image.description="WordPress with next-revalidate plugin for headless Next.js"
+LABEL org.opencontainers.image.description="WordPress with WPGraphQL and next-revalidate plugin for headless Next.js"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Install WP-CLI
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
     && chmod +x wp-cli.phar \
     && mv wp-cli.phar /usr/local/bin/wp
+
+# Download WPGraphQL plugin
+RUN curl -L -o /tmp/wp-graphql.zip https://downloads.wordpress.org/plugin/wp-graphql.latest-stable.zip \
+    && mkdir -p /usr/src/wp-graphql \
+    && unzip /tmp/wp-graphql.zip -d /usr/src/ \
+    && rm /tmp/wp-graphql.zip
 
 # Copy plugin and theme to staging location (volume overwrites /var/www/html)
 COPY next-revalidate /usr/src/next-revalidate

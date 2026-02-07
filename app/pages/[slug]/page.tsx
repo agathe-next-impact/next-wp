@@ -40,6 +40,7 @@ export async function generateMetadata({
     description,
     slug: page.slug,
     basePath: "pages",
+    seo: page.seo,
   });
 }
 

@@ -37,6 +37,7 @@ export async function generateMetadata({
     description,
     slug: post.slug,
     basePath: "posts",
+    seo: post.seo,
   });
 }
 

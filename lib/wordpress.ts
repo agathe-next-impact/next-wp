@@ -14,6 +14,7 @@ import type {
   CustomTaxonomyData,
   ACFOptionsPageInfo,
   ACFOptionsPageData,
+  SeoMetadata,
 } from "./wordpress.d";
 
 // Single source of truth for WordPress configuration
@@ -127,6 +128,31 @@ function pageNumberToCursor(page: number, perPage: number): string | null {
 // GraphQL Queries
 // ============================================================================
 
+const SEO_FIELDS = `
+  seo {
+    title
+    metaDesc
+    canonical
+    opengraphTitle
+    opengraphDescription
+    opengraphUrl
+    opengraphImage {
+      sourceUrl
+      width
+      height
+      altText
+    }
+    twitterTitle
+    twitterDescription
+    twitterImage {
+      sourceUrl
+      width
+      height
+      altText
+    }
+  }
+`;
+
 const POST_FIELDS = `
   databaseId
   slug
@@ -196,6 +222,7 @@ const POST_FIELDS = `
       count
     }
   }
+  ${SEO_FIELDS}
 `;
 
 const POSTS_QUERY = `
@@ -429,6 +456,7 @@ const PAGE_BY_SLUG_QUERY = `
           databaseId
         }
       }
+      ${SEO_FIELDS}
     }
   }
 `;
@@ -459,6 +487,7 @@ const PAGE_BY_ID_QUERY = `
           databaseId
         }
       }
+      ${SEO_FIELDS}
     }
   }
 `;
@@ -544,6 +573,36 @@ const MEDIA_BY_ID_QUERY = `
 // ============================================================================
 
 // Transformer functions use `any` for raw GraphQL response nodes
+function transformSeo(seo: any): SeoMetadata | undefined {
+  if (!seo) return undefined;
+  return {
+    title: seo.title || "",
+    metaDesc: seo.metaDesc || "",
+    canonical: seo.canonical || "",
+    opengraphTitle: seo.opengraphTitle || "",
+    opengraphDescription: seo.opengraphDescription || "",
+    opengraphUrl: seo.opengraphUrl || "",
+    opengraphImage: seo.opengraphImage
+      ? {
+          sourceUrl: seo.opengraphImage.sourceUrl || "",
+          width: seo.opengraphImage.width || 0,
+          height: seo.opengraphImage.height || 0,
+          altText: seo.opengraphImage.altText || "",
+        }
+      : undefined,
+    twitterTitle: seo.twitterTitle || "",
+    twitterDescription: seo.twitterDescription || "",
+    twitterImage: seo.twitterImage
+      ? {
+          sourceUrl: seo.twitterImage.sourceUrl || "",
+          width: seo.twitterImage.width || 0,
+          height: seo.twitterImage.height || 0,
+          altText: seo.twitterImage.altText || "",
+        }
+      : undefined,
+  };
+}
+
 function transformPost(node: any): Post {
   const featuredMedia = node.featuredImage?.node;
   const categories = node.categories?.nodes || [];
@@ -603,6 +662,7 @@ function transformPost(node: any): Post {
         })),
       ],
     },
+    seo: transformSeo(node.seo),
   };
 }
 
@@ -709,6 +769,7 @@ function transformPage(node: any): Page {
     ping_status: (node.pingStatus?.toLowerCase() || "closed") as "open" | "closed",
     template: "",
     meta: {},
+    seo: transformSeo(node.seo),
   };
 }
 
@@ -1451,6 +1512,7 @@ const CONTENT_NODE_FIELDS = `
       }
     }
   }
+  ${SEO_FIELDS}
 `;
 
 // Convert CPT name to WPGraphQL ContentTypeEnum value
@@ -1545,6 +1607,7 @@ function transformContentNode(node: any, contentTypeName: string): ContentNode {
         : undefined,
     },
     contentType: contentTypeName,
+    seo: transformSeo(node.seo),
   };
 }
 

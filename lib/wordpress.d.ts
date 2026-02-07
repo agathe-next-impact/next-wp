@@ -51,6 +51,27 @@ export interface FeaturedMedia extends WPEntity {
   source_url: string;
 }
 
+// SEO metadata (from Yoast or native WordPress fallback)
+export interface SeoImage {
+  sourceUrl: string;
+  width: number;
+  height: number;
+  altText: string;
+}
+
+export interface SeoMetadata {
+  title: string;
+  metaDesc: string;
+  canonical: string;
+  opengraphTitle: string;
+  opengraphDescription: string;
+  opengraphUrl: string;
+  opengraphImage?: SeoImage;
+  twitterTitle: string;
+  twitterDescription: string;
+  twitterImage?: SeoImage;
+}
+
 // Content types
 export interface Post extends WPEntity {
   title: RenderedTitle;
@@ -79,6 +100,7 @@ export interface Post extends WPEntity {
   _embedded?: PostEmbedded;
   acf?: Record<string, unknown>;
   customTaxonomies?: CustomTaxonomyData[];
+  seo?: SeoMetadata;
 }
 
 export interface Page extends WPEntity {
@@ -95,6 +117,7 @@ export interface Page extends WPEntity {
   meta: Record<string, unknown>;
   acf?: Record<string, unknown>;
   customTaxonomies?: CustomTaxonomyData[];
+  seo?: SeoMetadata;
 }
 
 // Custom taxonomy data for dynamic rendering
@@ -134,6 +157,7 @@ export interface ContentNode {
   contentType: string;
   acf?: Record<string, unknown>;
   customTaxonomies?: CustomTaxonomyData[];
+  seo?: SeoMetadata;
 }
 
 // ACF Options Page types

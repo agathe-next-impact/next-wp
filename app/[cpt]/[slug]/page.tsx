@@ -50,6 +50,7 @@ export async function generateMetadata({
     description,
     slug: node.slug,
     basePath: cpt,
+    seo: node.seo,
   });
 }
 

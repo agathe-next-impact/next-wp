@@ -1,6 +1,16 @@
 import { Section, Container } from "@/components/craft";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
+import dynamic from "next/dynamic";
 import { mainMenu, contentMenu } from "@/menu.config";
+
+const ThemeToggle = dynamic(
+  () =>
+    import("@/components/theme/theme-toggle").then((mod) => ({
+      default: mod.ThemeToggle,
+    })),
+  {
+    loading: () => <div className="h-10 w-10 rounded-md border" />,
+  }
+);
 import { siteConfig } from "@/site.config";
 import Logo from "@/public/logo.svg";
 import Image from "next/image";

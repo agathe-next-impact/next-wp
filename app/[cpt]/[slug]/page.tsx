@@ -7,6 +7,9 @@ import {
 import { generateContentMetadata, stripHtml } from "@/lib/metadata";
 import { Section, Container, Article, Prose } from "@/components/craft";
 import { DynamicFields } from "@/components/dynamic-fields";
+import { contentNodeSchema, breadcrumbSchema } from "@/lib/schema";
+import { sanitizeContent, stripHtmlTags } from "@/lib/sanitize";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -79,15 +82,25 @@ export default async function CPTDetailPage({
     : null;
 
   return (
-    <Section>
-      <Container>
-        <Prose>
-          {node.title?.rendered && (
-            <h1>
-              <span
-                dangerouslySetInnerHTML={{ __html: node.title.rendered }}
-              />
-            </h1>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            contentNodeSchema(node, cpt),
+            breadcrumbSchema([
+              { name: "Home", href: "/" },
+              { name: cptInfo.label, href: `/${cpt}` },
+              { name: stripHtmlTags(node.title?.rendered || "") || node.slug, href: `/${cpt}/${node.slug}` },
+            ]),
+          ]),
+        }}
+      />
+      <Section>
+        <Container>
+          <Prose>
+            {node.title?.rendered && (
+              <h1>{stripHtmlTags(node.title.rendered)}</h1>
           )}
           <div className="flex justify-between items-center gap-4 text-sm mb-4">
             {date && (
@@ -98,12 +111,14 @@ export default async function CPTDetailPage({
             )}
           </div>
           {featuredMedia?.source_url && (
-            <div className="h-96 my-12 md:h-[500px] overflow-hidden flex items-center justify-center border rounded-lg bg-accent/25">
-              {/* eslint-disable-next-line */}
-              <img
+            <div className="h-96 my-12 md:h-[500px] overflow-hidden flex items-center justify-center border rounded-lg bg-accent/25 relative">
+              <Image
                 className="w-full h-full object-cover"
                 src={featuredMedia.source_url}
                 alt={node.title?.rendered || ""}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
               />
             </div>
           )}
@@ -111,12 +126,13 @@ export default async function CPTDetailPage({
 
         {node.content?.rendered && (
           <Article
-            dangerouslySetInnerHTML={{ __html: node.content.rendered }}
+            dangerouslySetInnerHTML={{ __html: sanitizeContent(node.content.rendered) }}
           />
         )}
 
         <DynamicFields acf={node.acf} customTaxonomies={node.customTaxonomies} />
       </Container>
     </Section>
+    </>
   );
 }

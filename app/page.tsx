@@ -12,6 +12,22 @@ import { File, Pen, Tag, Diamond, User, Folder, LayoutGrid, Settings } from "luc
 import { WordPressIcon } from "@/components/icons/wordpress";
 import { NextJsIcon } from "@/components/icons/nextjs";
 
+import type { Metadata } from "next";
+import { siteConfig } from "@/site.config";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: siteConfig.site_name,
+  },
+  description: siteConfig.site_description,
+  openGraph: {
+    title: siteConfig.site_name,
+    description: siteConfig.site_description,
+    url: siteConfig.site_domain,
+    type: "website",
+  },
+};
+
 // This page is using the craft.tsx component and design system
 export default async function Home() {
   const [cptTypes, optionsPages] = await Promise.all([

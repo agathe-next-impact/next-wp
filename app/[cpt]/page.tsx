@@ -36,6 +36,9 @@ export async function generateMetadata({
   return {
     title: cptInfo.label,
     description: cptInfo.description || `Browse all ${cptInfo.label}`,
+    alternates: {
+      canonical: `/${cpt}`,
+    },
   };
 }
 

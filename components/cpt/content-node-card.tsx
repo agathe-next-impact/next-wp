@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ContentNode } from "@/lib/wordpress.d";
 import { cn } from "@/lib/utils";
 import { truncateHtml } from "@/lib/metadata";
+import { stripHtmlTags } from "@/lib/sanitize";
 
 export function ContentNodeCard({
   node,
@@ -36,8 +37,8 @@ export function ContentNodeCard({
               className="h-full w-full object-cover"
               src={media.source_url}
               alt={node.title?.rendered || "Thumbnail"}
-              width={400}
-              height={200}
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
             />
           ) : (
             <div className="flex items-center justify-center w-full h-full text-muted-foreground">
@@ -46,10 +47,9 @@ export function ContentNodeCard({
           )}
         </div>
         {node.title?.rendered && (
-          <div
-            dangerouslySetInnerHTML={{ __html: node.title.rendered }}
-            className="text-xl text-primary font-medium group-hover:underline decoration-muted-foreground underline-offset-4 decoration-dotted transition-all"
-          />
+          <div className="text-xl text-primary font-medium group-hover:underline decoration-muted-foreground underline-offset-4 decoration-dotted transition-all">
+            {stripHtmlTags(node.title.rendered)}
+          </div>
         )}
         <div className="text-sm">
           {node.excerpt?.rendered

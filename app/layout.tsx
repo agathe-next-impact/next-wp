@@ -5,9 +5,11 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Nav } from "@/components/layout/nav";
 import { Footer } from "@/components/layout/footer";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { siteConfig } from "@/site.config";
 import { cn } from "@/lib/utils";
+import { organizationSchema, websiteSchema } from "@/lib/schema";
 
 import type { Metadata } from "next";
 
@@ -17,13 +19,16 @@ const font = FontSans({
 });
 
 export const metadata: Metadata = {
-  title: "WordPress & Next.js Starter by 9d8",
-  description:
-    "A starter template for Next.js with WordPress as a headless CMS.",
+  title: {
+    default: siteConfig.site_name,
+    template: `%s | ${siteConfig.site_name}`,
+  },
+  description: siteConfig.site_description,
   metadataBase: new URL(siteConfig.site_domain),
   alternates: {
     canonical: "/",
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -33,8 +38,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        {process.env.WORDPRESS_URL && (
+          <>
+            <link rel="preconnect" href={process.env.WORDPRESS_URL} />
+            <link rel="dns-prefetch" href={process.env.WORDPRESS_URL} />
+          </>
+        )}
+      </head>
       <body className={cn("min-h-screen font-sans antialiased", font.variable)}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([organizationSchema(), websiteSchema()]),
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -46,6 +64,7 @@ export default function RootLayout({
           <Footer />
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -13,7 +13,9 @@
       "Bash(mkdir:*)",
       "Bash(WORDPRESS_URL=\"\" WORDPRESS_HOSTNAME=\"\" pnpm build:*)",
       "Bash(grep:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(pnpm lint:*)"
     ],
     "deny": [],
     "ask": []

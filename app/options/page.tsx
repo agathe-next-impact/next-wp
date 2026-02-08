@@ -9,6 +9,9 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Options Pages",
   description: "ACF Options Pages",
+  alternates: {
+    canonical: "/options",
+  },
 };
 
 export default async function OptionsIndexPage() {

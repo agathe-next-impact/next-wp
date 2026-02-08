@@ -1,6 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { MobileNav } from "@/components/nav/mobile-nav";
+import dynamic from "next/dynamic";
 import { mainMenu } from "@/menu.config";
+
+const MobileNav = dynamic(
+  () =>
+    import("@/components/nav/mobile-nav").then((mod) => ({
+      default: mod.MobileNav,
+    })),
+  {
+    loading: () => <div className="w-10 h-10 rounded-md border md:hidden" />,
+  }
+);
 import { siteConfig } from "@/site.config";
 import { cn } from "@/lib/utils";
 import Logo from "@/public/logo.svg";
@@ -30,7 +40,7 @@ export function Nav({ className, children, id }: NavProps) {
           <Image
             src={Logo}
             alt="Logo"
-            loading="eager"
+            priority
             className="dark:invert"
             width={42}
             height={26.44}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Post } from "@/lib/wordpress.d";
 import { cn } from "@/lib/utils";
 import { truncateHtml } from "@/lib/metadata";
+import { stripHtmlTags } from "@/lib/sanitize";
 
 export function PostCard({ post }: { post: Post }) {
   // Use embedded data instead of separate API calls
@@ -30,8 +31,8 @@ export function PostCard({ post }: { post: Post }) {
               className="h-full w-full object-cover"
               src={media.source_url}
               alt={post.title?.rendered || "Post thumbnail"}
-              width={400}
-              height={200}
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
             />
           ) : (
             <div className="flex items-center justify-center w-full h-full text-muted-foreground">
@@ -39,12 +40,9 @@ export function PostCard({ post }: { post: Post }) {
             </div>
           )}
         </div>
-        <div
-          dangerouslySetInnerHTML={{
-            __html: post.title?.rendered || "Untitled Post",
-          }}
-          className="text-xl text-primary font-medium group-hover:underline decoration-muted-foreground underline-offset-4 decoration-dotted transition-all"
-        ></div>
+        <div className="text-xl text-primary font-medium group-hover:underline decoration-muted-foreground underline-offset-4 decoration-dotted transition-all">
+          {stripHtmlTags(post.title?.rendered || "Untitled Post")}
+        </div>
         <div className="text-sm">
           {post.excerpt?.rendered
             ? truncateHtml(post.excerpt.rendered, 12)

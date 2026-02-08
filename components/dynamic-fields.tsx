@@ -1,4 +1,6 @@
+import Image from "next/image";
 import type { CustomTaxonomyData } from "@/lib/wordpress.d";
+import { sanitizeContent } from "@/lib/sanitize";
 
 interface DynamicFieldsProps {
   acf?: Record<string, unknown>;
@@ -36,12 +38,13 @@ function FieldValue({ value }: { value: unknown }) {
   if (typeof value === "string") {
     if (isImageUrl(value)) {
       return (
-        <div className="my-2">
-          {/* eslint-disable-next-line */}
-          <img
+        <div className="my-2 relative w-full max-w-lg aspect-video">
+          <Image
             src={value}
             alt=""
-            className="max-w-full h-auto rounded-lg border"
+            fill
+            className="object-contain rounded-lg border"
+            sizes="(max-width: 768px) 100vw, 512px"
           />
         </div>
       );
@@ -59,7 +62,7 @@ function FieldValue({ value }: { value: unknown }) {
       );
     }
     if (isHtml(value)) {
-      return <div dangerouslySetInnerHTML={{ __html: value }} />;
+      return <div dangerouslySetInnerHTML={{ __html: sanitizeContent(value) }} />;
     }
     return <span>{value}</span>;
   }

@@ -2,6 +2,7 @@ import { getPageBySlug, getAllPages } from "@/lib/wordpress";
 import { generateContentMetadata, stripHtml } from "@/lib/metadata";
 import { Section, Container, Prose } from "@/components/craft";
 import { DynamicFields } from "@/components/dynamic-fields";
+import { sanitizeContent, stripHtmlTags } from "@/lib/sanitize";
 import { notFound } from "next/navigation";
 
 import type { Metadata } from "next";
@@ -60,8 +61,8 @@ export default async function Page({
     <Section>
       <Container>
         <Prose>
-          <h2>{page.title?.rendered || ""}</h2>
-          <div dangerouslySetInnerHTML={{ __html: page.content?.rendered || "" }} />
+          <h2>{stripHtmlTags(page.title?.rendered || "")}</h2>
+          <div dangerouslySetInnerHTML={{ __html: sanitizeContent(page.content?.rendered || "") }} />
         </Prose>
 
         <DynamicFields acf={page.acf} customTaxonomies={page.customTaxonomies} />

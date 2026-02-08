@@ -3,13 +3,24 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+const MAX_TITLE_LENGTH = 200;
+const MAX_DESCRIPTION_LENGTH = 500;
+
+// Strip HTML tags (lightweight, edge-compatible)
+function stripTags(str: string): string {
+  return str.replace(/<[^>]*>/g, "");
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // Get title and description from the URL query params
-    const title = searchParams.get("title");
-    const description = searchParams.get("description");
+    // Validate and sanitize inputs
+    const rawTitle = searchParams.get("title") || "";
+    const rawDescription = searchParams.get("description") || "";
+
+    const title = stripTags(rawTitle).slice(0, MAX_TITLE_LENGTH) || null;
+    const description = stripTags(rawDescription).slice(0, MAX_DESCRIPTION_LENGTH) || null;
 
     return new ImageResponse(
       (
@@ -68,9 +79,9 @@ export async function GET(request: NextRequest) {
         height: 630,
       }
     );
-  } catch (e: any) {
-    console.log(`${e.message}`);
-    return new Response(`Failed to generate the image`, {
+  } catch (e) {
+    console.log(e instanceof Error ? e.message : "OG image generation failed");
+    return new Response("Failed to generate the image", {
       status: 500,
     });
   }

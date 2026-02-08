@@ -2,6 +2,8 @@
 // Uses WPGraphQL plugin to fetch data from WordPress
 // Types are imported from `wordpress.d.ts`
 
+import { cache } from "react";
+
 import type {
   Post,
   Category,
@@ -889,7 +891,7 @@ export async function getPostById(id: number): Promise<Post> {
   return transformPost(data.post);
 }
 
-export async function getPostBySlug(slug: string): Promise<Post | undefined> {
+export const getPostBySlug = cache(async function getPostBySlug(slug: string): Promise<Post | undefined> {
   const data = await graphqlFetchGraceful<{ post: unknown | null }>(
     POST_BY_SLUG_QUERY,
     { post: null },
@@ -902,7 +904,7 @@ export async function getPostBySlug(slug: string): Promise<Post | undefined> {
   post.acf = extras.acf;
   post.customTaxonomies = extras.customTaxonomies;
   return post;
-}
+});
 
 // ============================================================================
 // Exported Functions — Categories
@@ -1016,7 +1018,7 @@ export async function getPageById(id: number): Promise<Page> {
   return transformPage(data.page);
 }
 
-export async function getPageBySlug(slug: string): Promise<Page | undefined> {
+export const getPageBySlug = cache(async function getPageBySlug(slug: string): Promise<Page | undefined> {
   const data = await graphqlFetchGraceful<{ page: unknown | null }>(
     PAGE_BY_SLUG_QUERY,
     { page: null },
@@ -1029,7 +1031,7 @@ export async function getPageBySlug(slug: string): Promise<Page | undefined> {
   page.acf = extras.acf;
   page.customTaxonomies = extras.customTaxonomies;
   return page;
-}
+});
 
 // ============================================================================
 // Exported Functions — Authors
@@ -1387,10 +1389,13 @@ async function fetchContentExtras(
       if (value.length === 0) continue;
       if (!value.every((v: unknown) => typeof v === "number")) continue;
 
+      // Validate taxonomy key format before using in URL
+      if (!/^[a-z][a-z0-9_-]{0,49}$/i.test(key)) continue;
+
       // This is a taxonomy field — fetch the terms
       const termIds = value as number[];
       try {
-        const termsUrl = `${baseUrl}/wp-json/wp/v2/${key}?include=${termIds.join(",")}`;
+        const termsUrl = `${baseUrl}/wp-json/wp/v2/${encodeURIComponent(key)}?include=${termIds.join(",")}`;
         const termsResponse = await fetch(termsUrl, {
           headers: { "User-Agent": USER_AGENT },
           next: { revalidate: CACHE_TTL, tags: ["wordpress", `taxonomy-${key}`] },
@@ -1515,9 +1520,15 @@ const CONTENT_NODE_FIELDS = `
   ${SEO_FIELDS}
 `;
 
+// Validate CPT name: only lowercase alphanumeric, hyphens, underscores (max 50 chars)
+const CPT_NAME_PATTERN = /^[a-z][a-z0-9_-]{0,49}$/;
+
 // Convert CPT name to WPGraphQL ContentTypeEnum value
 // e.g. "actualite-veille" → "ACTUALITE_VEILLE", "guide" → "GUIDE"
 function toContentTypeEnum(name: string): string {
+  if (!CPT_NAME_PATTERN.test(name)) {
+    throw new Error(`Invalid content type name: ${name}`);
+  }
   return name.replace(/-/g, "_").toUpperCase();
 }
 
@@ -1611,7 +1622,7 @@ function transformContentNode(node: any, contentTypeName: string): ContentNode {
   };
 }
 
-export async function getCustomPostTypes(): Promise<ContentTypeInfo[]> {
+export const getCustomPostTypes = cache(async function getCustomPostTypes(): Promise<ContentTypeInfo[]> {
   const data = await graphqlFetchGraceful<{
     contentTypes: { nodes: ContentTypeInfo[] };
   }>(
@@ -1624,14 +1635,14 @@ export async function getCustomPostTypes(): Promise<ContentTypeInfo[]> {
   return data.contentTypes.nodes.filter(
     (ct) => !BUILT_IN_CONTENT_TYPES.has(ct.name)
   );
-}
+});
 
-export async function getContentTypeBySlug(
+export const getContentTypeBySlug = cache(async function getContentTypeBySlug(
   slug: string
 ): Promise<ContentTypeInfo | undefined> {
   const types = await getCustomPostTypes();
   return types.find((ct) => ct.name === slug);
-}
+});
 
 export async function getCPTNodesPaginated(
   cptInfo: ContentTypeInfo,
@@ -1691,7 +1702,7 @@ export async function getCPTNodesPaginated(
   }
 }
 
-export async function getCPTNodeBySlug(
+export const getCPTNodeBySlug = cache(async function getCPTNodeBySlug(
   cptInfo: ContentTypeInfo,
   slug: string
 ): Promise<ContentNode | undefined> {
@@ -1714,7 +1725,7 @@ export async function getCPTNodeBySlug(
   node.acf = extras.acf;
   node.customTaxonomies = extras.customTaxonomies;
   return node;
-}
+});
 
 export async function getAllCPTSlugs(
   cptInfo: ContentTypeInfo
@@ -1782,7 +1793,7 @@ export async function getACFOptionsPages(): Promise<ACFOptionsPageInfo[]> {
   }
 }
 
-export async function getACFOptionsPageBySlug(
+export const getACFOptionsPageBySlug = cache(async function getACFOptionsPageBySlug(
   slug: string
 ): Promise<ACFOptionsPageData | undefined> {
   if (!baseUrl) return undefined;
@@ -1804,6 +1815,6 @@ export async function getACFOptionsPageBySlug(
     console.warn(`ACF Options Page fetch failed for slug: ${slug}`);
     return undefined;
   }
-}
+});
 
 export { WordPressAPIError };
